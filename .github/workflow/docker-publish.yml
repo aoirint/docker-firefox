@@ -1,0 +1,39 @@
+name: Docker registry
+
+on:
+   push:
+     tags:
+       - 'v*'
+
+jobs:
+  dockerhub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Login to docker hub
+        uses: actions-hub/docker/login@master
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_REGISTRY_URL: docker.io
+
+      - name: Build :tag
+        if: success()
+        run: docker build -t aoirint/firefox:${IMAGE_TAG} .
+
+      - name: Push to docker hub :tag
+        if: success()
+        uses: actions-hub/docker@master
+        with:
+          args: push aoirint/firefox:${IMAGE_TAG}
+
+      - name: Build :latest
+        if: success()
+        run: docker build -t aoirint/firefox:latest .
+
+      - name: Push to docker hub :latest
+        if: success()
+        uses: actions-hub/docker@master
+        with:
+          args: push aoirint/firefox:latest
